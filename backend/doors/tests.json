@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Получить список дверей",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

@@ -1,35 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from '@/components/ui/sheet';
+import { DOORS_API, Door } from '@/lib/api';
 
 const INTERIOR_IMG = 'https://cdn.poehali.dev/projects/5b3f5f4c-2089-4e4d-8e24-9781f6cda1b4/files/032c1871-747c-4f1c-8044-4fc37970d682.jpg';
 const ENTRANCE_IMG = 'https://cdn.poehali.dev/projects/5b3f5f4c-2089-4e4d-8e24-9781f6cda1b4/files/e2e12d35-cfc4-4bac-87b6-5d2cf2e68ce7.jpg';
-
-interface Door {
-  id: number;
-  name: string;
-  type: 'Межкомнатные' | 'Входные';
-  material: string;
-  price: number;
-  width: number;
-  height: number;
-  img: string;
-}
-
-const DOORS: Door[] = [
-  { id: 1, name: 'Лофт Натура', type: 'Межкомнатные', material: 'Массив дуба', price: 24900, width: 80, height: 200, img: INTERIOR_IMG },
-  { id: 2, name: 'Скандинавия', type: 'Межкомнатные', material: 'Экошпон', price: 12400, width: 70, height: 200, img: INTERIOR_IMG },
-  { id: 3, name: 'Бастион Сталь', type: 'Входные', material: 'Сталь', price: 48700, width: 90, height: 205, img: ENTRANCE_IMG },
-  { id: 4, name: 'Гранд Антик', type: 'Входные', material: 'Сталь', price: 62300, width: 96, height: 210, img: ENTRANCE_IMG },
-  { id: 5, name: 'Минима Уайт', type: 'Межкомнатные', material: 'Эмаль', price: 18600, width: 80, height: 200, img: INTERIOR_IMG },
-  { id: 6, name: 'Терра Венге', type: 'Межкомнатные', material: 'Массив дуба', price: 31200, width: 90, height: 200, img: INTERIOR_IMG },
-  { id: 7, name: 'Форт Премиум', type: 'Входные', material: 'Сталь', price: 71500, width: 96, height: 210, img: ENTRANCE_IMG },
-  { id: 8, name: 'Эко Лайт', type: 'Межкомнатные', material: 'Экошпон', price: 9900, width: 70, height: 200, img: INTERIOR_IMG },
-];
 
 const MATERIALS = ['Массив дуба', 'Экошпон', 'Эмаль', 'Сталь'];
 const TYPES = ['Межкомнатные', 'Входные'] as const;
@@ -38,25 +18,30 @@ const NAV = ['Главная', 'Каталог', 'О нас', 'Услуги', '�
 const fmt = (n: number) => n.toLocaleString('ru-RU') + ' ₽';
 
 export default function Index() {
+  const [doors, setDoors] = useState<Door[]>([]);
   const [type, setType] = useState<string | null>(null);
   const [materials, setMaterials] = useState<string[]>([]);
   const [price, setPrice] = useState<[number, number]>([9000, 75000]);
   const [width, setWidth] = useState<[number, number]>([70, 96]);
   const [cart, setCart] = useState<Door[]>([]);
 
+  useEffect(() => {
+    fetch(DOORS_API).then((r) => r.json()).then(setDoors).catch(() => setDoors([]));
+  }, []);
+
   const toggleMaterial = (m: string) =>
     setMaterials((p) => (p.includes(m) ? p.filter((x) => x !== m) : [...p, m]));
 
   const filtered = useMemo(
     () =>
-      DOORS.filter(
+      doors.filter(
         (d) =>
           (!type || d.type === type) &&
           (materials.length === 0 || materials.includes(d.material)) &&
           d.price >= price[0] && d.price <= price[1] &&
           d.width >= width[0] && d.width <= width[1],
       ),
-    [type, materials, price, width],
+    [doors, type, materials, price, width],
   );
 
   const addToCart = (d: Door) => setCart((p) => [...p, d]);
@@ -413,7 +398,7 @@ export default function Index() {
             <Icon name="DoorOpen" className="text-primary" size={24} />
             <span className="font-display text-xl font-bold">ДВЕРИ<span className="text-primary">.</span></span>
           </div>
-          <p className="text-sm text-muted-foreground">© 2026 Салон премиальных дверей. Все права защищены.</p>
+          <p className="text-sm text-muted-foreground">© 2026 Салон премиальных дверей. <Link to="/admin" className="hover:text-primary transition-colors">Админка</Link></p>
           <div className="flex gap-4">
             {['Send', 'MessageCircle', 'Phone'].map((icon) => (
               <a key={icon} href="#" className="w-10 h-10 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
